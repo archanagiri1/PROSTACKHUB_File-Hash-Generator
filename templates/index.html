@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>File Hash Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="page">
+    <header class="top">
+        <div class="logo">H</div>
+        <div>
+            <p class="eyebrow">PROSTACKHUB · ETHICAL HACKING</p>
+            <h1>File Hash Generator</h1>
+            <p class="subtitle">Generate file fingerprints and compare hashes to check integrity.</p>
+        </div>
+    </header>
+
+    <section class="panel">
+        <div class="section-title"><span class="number">01</span><div><h2>Generate file hashes</h2><p>Choose a file to calculate its MD5, SHA-1, and SHA-256 values.</p></div></div>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="generate">
+            <label class="upload" for="file">
+                <span class="upload-icon">↑</span>
+                <strong id="fileName">Choose a file to upload</strong>
+                <small>Maximum file size: 25 MB</small>
+                <input id="file" name="file" type="file" required>
+            </label>
+            <button class="primary" type="submit">Generate hashes</button>
+        </form>
+
+        {% if filename %}
+        <div class="file-label">Selected file: <strong>{{ filename }}</strong></div>
+        {% endif %}
+        {% if error %}<div class="notice">{{ error }}</div>{% endif %}
+
+        {% if hashes %}
+        <div class="hash-list">
+            {% for name, value in hashes.items() %}
+            <div class="hash-card">
+                <div class="hash-head"><strong>{{ name }}</strong><button type="button" class="copy" data-copy="{{ value }}">Copy</button></div>
+                <code>{{ value }}</code>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="panel compare-panel">
+        <div class="section-title"><span class="number">02</span><div><h2>Compare two hashes</h2><p>Paste two values to check whether they match.</p></div></div>
+        <form method="POST">
+            <input type="hidden" name="action" value="compare">
+            <label for="first_hash">First hash</label>
+            <input class="text-input" id="first_hash" name="first_hash" placeholder="Paste the original hash" value="{{ first_hash }}">
+            <label for="second_hash">Second hash</label>
+            <input class="text-input" id="second_hash" name="second_hash" placeholder="Paste the hash to verify" value="{{ second_hash }}">
+            <button class="primary secondary" type="submit">Compare hashes</button>
+        </form>
+        {% if comparison %}
+        <div class="comparison {{ 'match' if comparison.startswith('Match:') else 'different' }}">{{ comparison }}</div>
+        {% endif %}
+    </section>
+
+    <footer><strong>Forensic note:</strong> A matching hash supports that the file contents are unchanged, assuming a trusted reference hash. MD5 and SHA-1 are included for compatibility and learning; use SHA-256 or a stronger modern hash for integrity checks. Hashes do not prove who created a file.</footer>
+</main>
+<script>
+    const fileInput = document.getElementById("file");
+    const fileName = document.getElementById("fileName");
+    fileInput.addEventListener("change", () => {
+        fileName.textContent = fileInput.files.length ? fileInput.files[0].name : "Choose a file to upload";
+    });
+
+    document.querySelectorAll(".copy").forEach(button => {
+        button.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(button.dataset.copy);
+                button.textContent = "Copied";
+                setTimeout(() => button.textContent = "Copy", 1200);
+            } catch {
+                button.textContent = "Copy failed";
+            }
+        });
+    });
+</script>
+</body>
+</html>
